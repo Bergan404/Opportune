@@ -1,0 +1,55 @@
+---
+export const prerender = false;
+
+import AppLayout from "../components/AppLayout.astro";
+import { getUserFromRequest } from "../lib/auth";
+
+const user = await getUserFromRequest(Astro.request);
+if (user) return Astro.redirect("/dashboard");
+---
+<AppLayout title="Register • Opportune">
+  <div class="card" style="max-width:480px;margin:80px auto;">
+    <h2 style="margin:0 0 8px 0;">Create account</h2>
+    <p class="muted" style="margin:0 0 14px 0;">Start tracking applications.</p>
+
+    <form id="registerForm">
+      <div style="margin-bottom:10px;">
+        <label class="muted">Email</label>
+        <input name="email" type="email" required />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label class="muted">Password</label>
+        <input name="password" type="password" required minlength="8" />
+      </div>
+
+      <div class="actions">
+        <button type="submit">Create</button>
+        <a href="/login" class="muted" style="align-self:center;">Already have an account?</a>
+      </div>
+
+      <p id="err" class="muted" style="margin-top:12px;"></p>
+    </form>
+
+    <script>
+      const form = document.getElementById("registerForm");
+      const err = document.getElementById("err");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        err.textContent = "";
+        const data = Object.fromEntries(new FormData(form).entries());
+
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          err.textContent = json?.error?.formErrors?.join?.(", ") || json?.error || "Register failed";
+          return;
+        }
+        window.location.href = "/dashboard";
+      });
+    </script>
+  </div>
+</AppLayout>

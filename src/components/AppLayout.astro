@@ -1,0 +1,32 @@
+---
+const { title = "Opportune" } = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{title}</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 0; background: #0b0b0f; color: #f2f2f2; }
+      a { color: inherit; }
+      .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      .card { background: #13131a; border: 1px solid #222232; border-radius: 14px; padding: 16px; }
+      input, select, textarea { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #2a2a3c; background: #0f0f15; color: #f2f2f2; }
+      button { padding: 10px 14px; border-radius: 10px; border: 1px solid #2a2a3c; background: #1a1a25; color: #fff; cursor: pointer; }
+      button:hover { background: #202030; }
+      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+      .muted { color: #bdbdd0; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+      .pill { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid #2a2a3c; background: #0f0f15; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: 10px; border-bottom: 1px solid #222232; }
+      .actions { display: flex; gap: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <slot />
+    </div>
+  </body>
+</html>

@@ -1,0 +1,17 @@
+---
+import AppLayout from "../../components/AppLayout.astro";
+import AppNav from "../../components/AppNav.astro";
+import ApplicationForm from "../../components/ApplicationForm.tsx";
+import { getUserFromRequest } from "../../lib/auth";
+
+const user = await getUserFromRequest(Astro.request);
+if (!user) return Astro.redirect("/login");
+---
+<AppLayout title="New Application • Opportune">
+  <AppNav email={user.email} />
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;">Add Application</h2>
+    <p class="muted" style="margin:0 0 14px 0;">Add a job you applied to (or want to apply to).</p>
+    <ApplicationForm client:load />
+  </div>
+</AppLayout>

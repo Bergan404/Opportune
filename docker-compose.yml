@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: opportune_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opportune
+      POSTGRES_PASSWORD: opportune_password
+      POSTGRES_DB: opportune
+    ports:
+      - "5432:5432"
+    volumes:
+      - opportune_pg:/var/lib/postgresql/data
+
+volumes:
+  opportune_pg:

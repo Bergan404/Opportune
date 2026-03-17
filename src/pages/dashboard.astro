@@ -1,0 +1,17 @@
+---
+import AppLayout from "../components/AppLayout.astro";
+import AppNav from "../components/AppNav.astro";
+import ApplicationTable from "../components/ApplicationTable.tsx";
+import { getUserFromRequest } from "../lib/auth";
+
+const user = await getUserFromRequest(Astro.request);
+if (!user) return Astro.redirect("/login");
+---
+<AppLayout title="Dashboard • Opportune">
+  <AppNav email={user.email} />
+  <div class="card">
+    <h2 style="margin:0 0 8px 0;">Applications</h2>
+    <p class="muted" style="margin:0 0 14px 0;">Track your pipeline. Add notes, status changes, and links.</p>
+    <ApplicationTable client:load />
+  </div>
+</AppLayout>

@@ -1,0 +1,158 @@
+---
+import AppLayout from "../../components/AppLayout.astro";
+import AppNav from "../../components/AppNav.astro";
+import { getUserFromRequest } from "../../lib/auth";
+
+const user = await getUserFromRequest(Astro.request);
+if (!user) return Astro.redirect("/login");
+---
+
+<AppLayout title="Settings • Opportune">
+  <AppNav email={user.email} />
+
+  <div class="card" style="margin-bottom: 20px;">
+    <h2 style="margin:0 0 8px 0;">API Keys</h2>
+    <p class="muted" style="margin:0 0 14px 0;">
+      Generate API keys to use with the Chrome extension or other integrations.
+    </p>
+
+    <div id="newKeySection" style="margin-bottom: 16px; display: none;">
+      <div style="background: #1a3a1a; border: 1px solid #2a5a2a; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+        <p style="margin: 0 0 8px 0; color: #7af27a; font-weight: 500;">✓ API Key Created</p>
+        <p class="muted" style="margin: 0 0 8px 0; font-size: 12px;">Copy this key now. You won't be able to see it again!</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="newKey" readonly style="flex: 1; font-family: monospace; font-size: 12px;">
+          <button type="button" id="copyKey">Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="createKeyForm" style="margin-bottom: 16px;">
+      <div style="display: flex; gap: 8px;">
+        <input
+          type="text"
+          id="keyName"
+          placeholder="e.g., Chrome Extension"
+          required
+          style="flex: 1;"
+        >
+        <button type="submit">Generate Key</button>
+      </div>
+    </form>
+
+    <div id="keysList">
+      <p class="muted">Loading...</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px 0;">Chrome Extension</h3>
+    <p class="muted" style="margin:0 0 12px 0;">
+      Install the extension to quickly add jobs from LinkedIn, Indeed, and other sites.
+    </p>
+    <ol class="muted" style="margin: 0; padding-left: 20px;">
+      <li>Generate an API key above</li>
+      <li>Open Chrome → Extensions → Developer mode → Load unpacked</li>
+      <li>Select the <code>extension/</code> folder from this project</li>
+      <li>Click the extension icon and paste your API key</li>
+    </ol>
+  </div>
+
+  <script>
+    // Load API keys
+    async function loadKeys() {
+      const res = await fetch('/api/keys');
+      const json = await res.json();
+
+      const container = document.getElementById('keysList');
+      if (!json.ok || !json.keys.length) {
+        container.innerHTML = '<p class="muted">No API keys yet. Generate one above.</p>';
+        return;
+      }
+
+      container.innerHTML = `
+        <table style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Created</th>
+              <th>Last Used</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${json.keys.map(key => `
+              <tr data-id="${key.id}">
+                <td>${escapeHtml(key.name)}</td>
+                <td>${formatDate(key.createdAt)}</td>
+                <td>${key.lastUsedAt ? formatDate(key.lastUsedAt) : 'Never'}</td>
+                <td style="text-align: right;">
+                  <button class="delete-btn" data-id="${key.id}">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+      // Add delete handlers
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const id = e.target.dataset.id;
+          if (!confirm('Delete this API key?')) return;
+
+          const res = await fetch(`/api/keys/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            loadKeys();
+          }
+        });
+      });
+    }
+
+    // Create new key
+    document.getElementById('createKeyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('keyName').value.trim();
+
+      const res = await fetch('/api/keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+
+      const json = await res.json();
+      if (json.ok) {
+        document.getElementById('newKey').value = json.apiKey.key;
+        document.getElementById('newKeySection').style.display = 'block';
+        document.getElementById('keyName').value = '';
+        loadKeys();
+      }
+    });
+
+    // Copy key
+    document.getElementById('copyKey').addEventListener('click', () => {
+      const input = document.getElementById('newKey');
+      input.select();
+      document.execCommand('copy');
+      document.getElementById('copyKey').textContent = 'Copied!';
+      setTimeout(() => {
+        document.getElementById('copyKey').textContent = 'Copy';
+      }, 2000);
+    });
+
+    // Helpers
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Load on start
+    loadKeys();
+  </script>
+</AppLayout>
