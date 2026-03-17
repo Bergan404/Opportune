@@ -122,23 +122,27 @@ export async function getUserFromApiKey(request: Request) {
   if (!authHeader?.startsWith("Bearer ")) return null;
 
   const key = authHeader.slice(7);
-  const keyHash = await hashApiKey(key);
 
-  // Find API key by comparing hashes
-  const allKeys = await db.query.apiKeys.findMany({
-    with: { user: true },
-  });
+  const allKeys = await db
+    .select({
+      id: apiKeys.id,
+      userId: apiKeys.userId,
+      keyHash: apiKeys.keyHash,
+      email: users.email,
+    })
+    .from(apiKeys)
+    .innerJoin(users, eq(apiKeys.userId, users.id));
 
   for (const ak of allKeys) {
     if (await verifyApiKey(key, ak.keyHash)) {
-      // Update last used
       await db
         .update(apiKeys)
         .set({ lastUsedAt: new Date() })
         .where(eq(apiKeys.id, ak.id));
-      return { id: ak.userId, email: ak.user.email };
+      return { id: ak.userId, email: ak.email };
     }
   }
+
   return null;
 }
 

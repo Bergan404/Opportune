@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import { db } from "../../../../lib/db";
-import { applications } from "../../../../lib/schema";
-import { applicationSchema } from "../../../../lib/validators";
-import { getUserFromApiKey } from "../../../../lib/auth";
+import { db } from "../../../lib/db";
+import { applications } from "../../../lib/schema";
+import { applicationSchema } from "../../../lib/validators";
+import { getUserFromApiKey } from "../../../lib/auth";
 import { eq, desc } from "drizzle-orm";
 
 // POST /api/extension/applications - create application from extension
